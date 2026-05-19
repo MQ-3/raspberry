@@ -1,0 +1,13 @@
+blinker==1.9.0
+click==8.3.3
+colorzero==2.0
+Flask==3.1.3
+gpiozero==2.0.1
+itsdangerous==2.2.0
+Jinja2==3.1.6
+MarkupSafe==3.0.3
+pygame==2.6.1
+rpi_ws281x==5.0.0
+setuptools==82.0.1
+spidev==3.8
+Werkzeug==3.1.8
