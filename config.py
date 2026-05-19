@@ -1,0 +1,18 @@
+DB_HOST = "localhost"
+DB_USER = "alcohol_user"
+DB_PASSWORD = "1234"
+DB_NAME = "alcohol_db"
+DB_CHARSET = "utf8mb4"
+
+USE_MOCK_SENSOR = True
+SENSOR_CHANNEL = 3
+SENSOR_SAMPLE_COUNT = 10
+SENSOR_SAMPLE_DELAY = 0.03
+
+# MCP3208 value range is 0-4095. Tune after real MQ-3 testing.
+SAFE_MAX_VALUE = 1200
+DANGER_MIN_VALUE = 2400
+
+FLASK_HOST = "0.0.0.0"
+FLASK_PORT = 5000
+FLASK_DEBUG = True
