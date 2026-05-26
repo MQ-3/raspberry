@@ -1,26 +1,51 @@
+import RPi.GPIO as GPIO
 import time
 
+POWER = 19   # BCM 19
+RED   = 16   # BCM 16
+GREEN = 20   # BCM 20
+BLUE  = 21   # BCM 21
 
-def show_idle():
-    print("[LED] idle mode")
+GPIO.setmode(GPIO.BCM)
+GPIO.setup(POWER, GPIO.OUT)
+GPIO.setup(RED, GPIO.OUT)
+GPIO.setup(GREEN, GPIO.OUT)
+GPIO.setup(BLUE, GPIO.OUT)
 
+def all_off():
+    GPIO.output(RED, GPIO.LOW)
+    GPIO.output(GREEN, GPIO.LOW)
+    GPIO.output(BLUE, GPIO.LOW)
 
-def show_measure_progress():
-    print("[LED] measure progress start")
-    for step in range(1, 11):
-        print(f"[LED] gauge {step * 10}%")
-        time.sleep(0.03)
-    print("[LED] measure progress end")
+try:
+    GPIO.output(POWER, GPIO.HIGH)
 
+    while True:
+        # 빨강
+        all_off()
+        GPIO.output(RED, GPIO.HIGH)
+        print("RED")
+        time.sleep(1)
 
-def show_result(state_level):
-    colors = {
-        "safe": "green",
-        "caution": "yellow/orange",
-        "danger": "red",
-    }
-    print(f"[LED] result: {state_level} -> {colors.get(state_level, 'off')}")
+        # 초록
+        all_off()
+        GPIO.output(GREEN, GPIO.HIGH)
+        print("GREEN")
+        time.sleep(1)
 
+        # 파랑
+        all_off()
+        GPIO.output(BLUE, GPIO.HIGH)
+        print("BLUE")
+        time.sleep(1)
 
-def clear_led():
-    print("[LED] clear")
+        # 끄기
+        all_off()
+        print("OFF")
+        time.sleep(1)
+
+except KeyboardInterrupt:
+    all_off()
+    GPIO.output(POWER, GPIO.LOW)
+    GPIO.cleanup()
+    print("종료")
