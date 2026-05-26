@@ -23,8 +23,9 @@ for pin in PINS.values():
 
 
 def all_off():
+    # active-low test: HIGH is off.
     for pin in PINS.values():
-        GPIO.output(pin, GPIO.LOW)
+        GPIO.output(pin, GPIO.HIGH)
 
 
 try:
@@ -33,7 +34,7 @@ try:
     for name, pin in PINS.items():
         print(f"{name} 테스트 시작")
         all_off()
-        GPIO.output(pin, GPIO.HIGH)
+        GPIO.output(pin, GPIO.LOW)
         time.sleep(3)
 
     print("모두 끔")
