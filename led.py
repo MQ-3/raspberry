@@ -1,59 +1,80 @@
-import RPi.GPIO as GPIO
 import time
 
-POWER = 19   # BCM 19
-RED   = 16   # BCM 16
-GREEN = 20   # BCM 20
-BLUE  = 21   # BCM 21
+import RPi.GPIO as GPIO
 
-# If GREEN makes a buzzer sound, this pin is probably shared with or wired to a buzzer.
-# Lower duty reduces the noise while you verify the real J31 green pin mapping.
-GREEN_DUTY = 8
+
+# BCM GPIO numbers.
+POWER = 19
+RED = 16
+GREEN = 20
+BLUE = 21
+
+# Lower this if the LED is still too bright.
+BRIGHTNESS = 3
 PWM_FREQ = 1000
+
+COLOR_PINS = {
+    "RED": RED,
+    "GREEN": GREEN,
+    "BLUE": BLUE,
+}
+
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(POWER, GPIO.OUT)
-GPIO.setup(RED, GPIO.OUT)
-GPIO.setup(GREEN, GPIO.OUT)
-GPIO.setup(BLUE, GPIO.OUT)
-green_pwm = GPIO.PWM(GREEN, PWM_FREQ)
-green_pwm.start(0)
+GPIO.setup(list(COLOR_PINS.values()), GPIO.OUT)
 
-def all_off():
-    GPIO.output(RED, GPIO.LOW)
-    green_pwm.ChangeDutyCycle(0)
-    GPIO.output(BLUE, GPIO.LOW)
+pwms = {
+    name: GPIO.PWM(pin, PWM_FREQ)
+    for name, pin in COLOR_PINS.items()
+}
+
+for pwm in pwms.values():
+    pwm.start(0)
+
+
+def duty_for(active_low, on):
+    if active_low:
+        return 100 - BRIGHTNESS if on else 100
+    return BRIGHTNESS if on else 0
+
+
+def all_off(active_low):
+    for pwm in pwms.values():
+        pwm.ChangeDutyCycle(duty_for(active_low, False))
+
+
+def only_on(color_name, active_low):
+    for name, pwm in pwms.items():
+        pwm.ChangeDutyCycle(duty_for(active_low, name == color_name))
+
+
+def run_test(active_low):
+    mode = "COMMON_ANODE / ACTIVE_LOW" if active_low else "COMMON_CATHODE / ACTIVE_HIGH"
+    print(f"\n=== {mode} ===")
+    all_off(active_low)
+    time.sleep(1)
+
+    for color_name in COLOR_PINS:
+        only_on(color_name, active_low)
+        print(color_name)
+        time.sleep(2)
+
+    all_off(active_low)
+    print("OFF")
+    time.sleep(1)
+
 
 try:
     GPIO.output(POWER, GPIO.HIGH)
 
     while True:
-        # 빨강
-        all_off()
-        GPIO.output(RED, GPIO.HIGH)
-        print("RED")
-        time.sleep(1)
-
-        # 초록
-        all_off()
-        green_pwm.ChangeDutyCycle(GREEN_DUTY)
-        print("GREEN")
-        time.sleep(1)
-
-        # 파랑
-        all_off()
-        GPIO.output(BLUE, GPIO.HIGH)
-        print("BLUE")
-        time.sleep(1)
-
-        # 끄기
-        all_off()
-        print("OFF")
-        time.sleep(1)
+        run_test(active_low=False)
+        run_test(active_low=True)
 
 except KeyboardInterrupt:
-    all_off()
-    green_pwm.stop()
+    for pwm in pwms.values():
+        pwm.stop()
     GPIO.output(POWER, GPIO.LOW)
     GPIO.cleanup()
     print("종료")
