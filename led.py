@@ -6,11 +6,14 @@ import RPi.GPIO as GPIO
 # BCM GPIO numbers.
 POWER = 19
 
-# GPIO20 made a buzzer sound on this board, so do not drive it by default.
-# Test the remaining candidate pins first.
+# Trying the pin numbers from the board document:
+# #define RED 27
+# #define GREEN 28
+# #define BLUE 29
 TEST_PINS = {
-    "PIN_16": 16,
-    "PIN_21": 21,
+    "RED": 27,
+    "GREEN": 28,
+    "BLUE": 29,
 }
 
 # Keep this low while finding the correct RGB pins.
