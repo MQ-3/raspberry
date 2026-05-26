@@ -5,74 +5,60 @@ import RPi.GPIO as GPIO
 
 # BCM GPIO numbers.
 POWER = 19
-RED = 16
-GREEN = 20
-BLUE = 21
 
-# Lower this if the LED is still too bright.
-BRIGHTNESS = 3
-PWM_FREQ = 1000
-
-COLOR_PINS = {
-    "RED": RED,
-    "GREEN": GREEN,
-    "BLUE": BLUE,
+# GPIO20 made a buzzer sound on this board, so do not drive it by default.
+# Test the remaining candidate pins first.
+TEST_PINS = {
+    "PIN_16": 16,
+    "PIN_21": 21,
 }
+
+# Keep this low while finding the correct RGB pins.
+BRIGHTNESS = 2
+PWM_FREQ = 1000
 
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(POWER, GPIO.OUT)
-GPIO.setup(list(COLOR_PINS.values()), GPIO.OUT)
+GPIO.setup(list(TEST_PINS.values()), GPIO.OUT)
 
 pwms = {
     name: GPIO.PWM(pin, PWM_FREQ)
-    for name, pin in COLOR_PINS.items()
+    for name, pin in TEST_PINS.items()
 }
 
 for pwm in pwms.values():
     pwm.start(0)
 
 
-def duty_for(active_low, on):
-    if active_low:
-        return 100 - BRIGHTNESS if on else 100
-    return BRIGHTNESS if on else 0
-
-
-def all_off(active_low):
+def all_off():
     for pwm in pwms.values():
-        pwm.ChangeDutyCycle(duty_for(active_low, False))
+        pwm.ChangeDutyCycle(0)
 
 
-def only_on(color_name, active_low):
+def only_on(pin_name):
     for name, pwm in pwms.items():
-        pwm.ChangeDutyCycle(duty_for(active_low, name == color_name))
-
-
-def run_test(active_low):
-    mode = "COMMON_ANODE / ACTIVE_LOW" if active_low else "COMMON_CATHODE / ACTIVE_HIGH"
-    print(f"\n=== {mode} ===")
-    all_off(active_low)
-    time.sleep(1)
-
-    for color_name in COLOR_PINS:
-        only_on(color_name, active_low)
-        print(color_name)
-        time.sleep(2)
-
-    all_off(active_low)
-    print("OFF")
-    time.sleep(1)
+        pwm.ChangeDutyCycle(BRIGHTNESS if name == pin_name else 0)
 
 
 try:
     GPIO.output(POWER, GPIO.HIGH)
 
     while True:
-        run_test(active_low=False)
-        run_test(active_low=True)
+        print("\n=== ACTIVE_HIGH LOW_BRIGHTNESS TEST ===")
+
+        for pin_name, gpio_pin in TEST_PINS.items():
+            all_off()
+            only_on(pin_name)
+            print(f"{pin_name} / GPIO{gpio_pin}")
+            time.sleep(2)
+
+        all_off()
+        print("OFF")
+        time.sleep(1)
 
 except KeyboardInterrupt:
+    all_off()
     for pwm in pwms.values():
         pwm.stop()
     GPIO.output(POWER, GPIO.LOW)
