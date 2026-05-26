@@ -1,10 +1,10 @@
 import RPi.GPIO as GPIO
 import time
 
-POWER = 19
-RED = 16
-GREEN = 20
-BLUE = 21
+POWER = 19   # BCM 19
+RED   = 16   # BCM 16
+GREEN = 20   # BCM 20
+BLUE  = 21   # BCM 21
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(POWER, GPIO.OUT)
@@ -20,28 +20,32 @@ def all_off():
 try:
     GPIO.output(POWER, GPIO.HIGH)
 
-    print("RED만 켭니다")
-    all_off()
-    GPIO.output(RED, GPIO.HIGH)
-    time.sleep(5)
+    while True:
+        # 빨강
+        all_off()
+        GPIO.output(RED, GPIO.HIGH)
+        print("RED")
+        time.sleep(1)
 
-    print("GREEN만 켭니다")
-    all_off()
-    GPIO.output(GREEN, GPIO.HIGH)
-    time.sleep(5)
+        # 초록
+        all_off()
+        GPIO.output(GREEN, GPIO.HIGH)
+        print("GREEN")
+        time.sleep(1)
 
-    print("BLUE만 켭니다")
-    all_off()
-    GPIO.output(BLUE, GPIO.HIGH)
-    time.sleep(5)
+        # 파랑
+        all_off()
+        GPIO.output(BLUE, GPIO.HIGH)
+        print("BLUE")
+        time.sleep(1)
 
-    print("모두 끕니다")
-    all_off()
-    GPIO.output(POWER, GPIO.LOW)
+        # 끄기
+        all_off()
+        print("OFF")
+        time.sleep(1)
 
 except KeyboardInterrupt:
     all_off()
     GPIO.output(POWER, GPIO.LOW)
-
-finally:
     GPIO.cleanup()
+    print("종료")
