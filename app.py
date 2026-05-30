@@ -77,18 +77,7 @@ def sensor_loop():
                     "detected_at": now.strftime("%Y-%m-%d %H:%M:%S"),
                 }
 
-                try:
-                    from reports import save_drink_log
-                    save_drink_log({
-                        "sensor_value": peak,
-                        "state_level": state.level,
-                        "state_label": state.label,
-                        "state_message": state.message,
-                        "measured_at": now,
-                    })
-                except Exception:
-                    pass
-
+                # B 방식: DB 저장은 프론트가 user_id 붙여서 /api/logs로 요청
                 _baseline = None
 
             else:
@@ -186,7 +175,8 @@ def logs_week():
     try:
         from reports import get_week_report
 
-        return success_response(get_week_report())
+        user_id = request.args.get("user_id", type=int)  # 새로 추가: user_id 파라미터
+        return success_response(get_week_report(user_id=user_id))
     except Exception as exc:
         return error_response(str(exc), 500)
 
@@ -198,7 +188,8 @@ def calendar_month():
 
         year = request.args.get("year", type=int)
         month = request.args.get("month", type=int)
-        return success_response(get_month_report(year=year, month=month))
+        user_id = request.args.get("user_id", type=int)  # 새로 추가: user_id 파라미터
+        return success_response(get_month_report(year=year, month=month, user_id=user_id))
     except Exception as exc:
         return error_response(str(exc), 500)
 
@@ -242,6 +233,97 @@ def shorts_unlock():
         )
     except Exception as exc:
         led.clear_led()
+        return error_response(str(exc), 500)
+
+
+# 새로 추가: 회원가입
+@app.route("/api/auth/register", methods=["POST"])
+def register():
+    try:
+        from db import get_connection
+
+        data = request.get_json(silent=True) or {}
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            return error_response("email과 password를 입력해주세요", 400)
+
+        conn = get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
+                if cursor.fetchone():
+                    return error_response("이미 사용 중인 이메일입니다", 409)
+
+                cursor.execute(
+                    "INSERT INTO users (email, password) VALUES (%s, %s)",
+                    (email, password),
+                )
+                user_id = cursor.lastrowid
+            conn.commit()
+        finally:
+            conn.close()
+
+        return success_response({"user_id": user_id, "email": email}, 201)
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
+# 새로 추가: 로그인
+@app.route("/api/auth/login", methods=["POST"])
+def login():
+    try:
+        from db import get_connection
+
+        data = request.get_json(silent=True) or {}
+        email = data.get("email")
+        password = data.get("password")
+
+        if not email or not password:
+            return error_response("email과 password를 입력해주세요", 400)
+
+        conn = get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute(
+                    "SELECT id, email FROM users WHERE email = %s AND password = %s",
+                    (email, password),
+                )
+                user = cursor.fetchone()
+        finally:
+            conn.close()
+
+        if not user:
+            return error_response("이메일 또는 비밀번호가 올바르지 않습니다", 401)
+
+        return success_response({"user_id": user["id"], "email": user["email"]})
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
+# 새로 추가: 회원탈퇴
+@app.route("/api/auth/delete", methods=["DELETE"])
+def delete_account():
+    try:
+        from db import get_connection
+
+        data = request.get_json(silent=True) or {}
+        user_id = data.get("user_id")
+
+        if not user_id:
+            return error_response("user_id를 입력해주세요", 400)
+
+        conn = get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
+            conn.commit()
+        finally:
+            conn.close()
+
+        return success_response({"message": "계정이 삭제되었습니다"})
+    except Exception as exc:
         return error_response(str(exc), 500)
 
 

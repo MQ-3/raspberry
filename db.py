@@ -22,10 +22,21 @@ def init_tables():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
+            # 새로 추가: users 테이블
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL
+                )
+                """
+            )
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS drink_logs (
                     id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT,
                     measured_at DATETIME NOT NULL,
                     sensor_value INT NOT NULL,
                     state_level VARCHAR(20) NOT NULL,
@@ -34,7 +45,8 @@ def init_tables():
                     drink_type VARCHAR(50),
                     drink_amount FLOAT,
                     drink_unit VARCHAR(20),
-                    memo VARCHAR(255)
+                    memo VARCHAR(255),
+                    FOREIGN KEY (user_id) REFERENCES users(id)
                 )
                 """
             )
