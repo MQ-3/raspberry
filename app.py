@@ -287,7 +287,7 @@ def auth_delete():
         return error_response(str(exc), 500)
 
 
-@app.route("/api/status", methods=["GET"])  # 새로 추가: 프론트 폴링용 엔드포인트
+@app.route("/api/status", methods=["GET"])
 def status():
     if latest_result is None:
         return success_response({"breath_detected": False})
