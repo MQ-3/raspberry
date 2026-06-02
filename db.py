@@ -22,13 +22,13 @@ def init_tables():
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            # 새로 추가: users 테이블
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS users (
                     id INT AUTO_INCREMENT PRIMARY KEY,
-                    email VARCHAR(100) NOT NULL UNIQUE,
-                    password VARCHAR(255) NOT NULL
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    created_at DATETIME NOT NULL
                 )
                 """
             )
