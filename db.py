@@ -79,13 +79,13 @@ def init_tables():
                     created_at TEXT NOT NULL,
                     weight REAL,
                     gender TEXT,
-                    alcohol_tolerance TEXT
+                    alcohol_tolerance REAL
                 )
                 """
             )
             _add_column_if_missing(cursor, 'users', 'weight', 'REAL')
             _add_column_if_missing(cursor, 'users', 'gender', 'TEXT')
-            _add_column_if_missing(cursor, 'users', 'alcohol_tolerance', 'TEXT')
+            _add_column_if_missing(cursor, 'users', 'alcohol_tolerance', 'REAL')
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS drink_logs (
