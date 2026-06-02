@@ -144,7 +144,7 @@ def measure():
 @app.route("/api/logs", methods=["POST"])
 def create_log():
     try:
-        from reports import save_drink_log
+        from reports import calc_today_exceeded, save_drink_log
 
         data = request.get_json(silent=True) or {}
         required = ["sensor_value", "state_level", "state_label"]
@@ -153,7 +153,9 @@ def create_log():
             return error_response(f"missing required fields: {', '.join(missing)}", 400)
 
         log_id = save_drink_log(data)
-        return success_response({"message": "log saved", "id": log_id}, 201)
+        user_id = data.get("user_id")
+        exceeded = calc_today_exceeded(user_id)
+        return success_response({"message": "log saved", "id": log_id, "exceeded_tolerance": exceeded}, 201)
     except Exception as exc:
         return error_response(str(exc), 500)
 
@@ -161,9 +163,11 @@ def create_log():
 @app.route("/api/logs/today", methods=["GET"])
 def logs_today():
     try:
-        from reports import get_today_logs
+        from reports import calc_today_exceeded, get_today_logs
 
-        return success_response({"logs": get_today_logs()})
+        user_id = request.args.get("user_id", type=int)
+        exceeded = calc_today_exceeded(user_id)
+        return success_response({"logs": get_today_logs(), "exceeded_tolerance": exceeded})
     except Exception as exc:
         return error_response(str(exc), 500)
 

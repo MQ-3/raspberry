@@ -35,6 +35,52 @@ def serialize_log(row):
     }
 
 
+def calc_today_exceeded(user_id):
+    """오늘 음주 기록을 소주 병수로 환산해 주량 초과 여부를 반환한다."""
+    if not user_id:
+        return False
+
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT alcohol_tolerance FROM users WHERE id = %s", (user_id,)
+            )
+            row = cursor.fetchone()
+        if not row or row["alcohol_tolerance"] is None:
+            return False
+        tolerance = row["alcohol_tolerance"]
+
+        today = date.today()
+        start = datetime.combine(today, time.min)
+        end = start + timedelta(days=1)
+
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                SELECT drink_type, drink_unit, SUM(drink_amount) AS total
+                FROM drink_logs
+                WHERE user_id = %s AND measured_at >= %s AND measured_at < %s
+                  AND drink_type IS NOT NULL
+                GROUP BY drink_type, drink_unit
+                """,
+                (user_id, start, end),
+            )
+            rows = cursor.fetchall()
+    finally:
+        conn.close()
+
+    total_bottles = 0.0
+    for r in rows:
+        amount = r["total"] or 0
+        if r["drink_type"] == "소주" and r["drink_unit"] == "잔":
+            total_bottles += amount / 8
+        elif r["drink_type"] == "맥주" and r["drink_unit"] == "캔":
+            total_bottles += amount / 2.4
+
+    return total_bottles > tolerance
+
+
 def save_drink_log(data):
     measured_at = data.get("measured_at") or datetime.now()
 
