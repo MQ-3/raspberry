@@ -47,9 +47,11 @@ def delete_user(user_id):
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
-            if cursor.rowcount == 0:
+            cursor.execute("SELECT id FROM users WHERE id = %s", (user_id,))
+            if not cursor.fetchone():
                 raise ValueError("존재하지 않는 사용자입니다.")
+            cursor.execute("DELETE FROM drink_logs WHERE user_id = %s", (user_id,))
+            cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
         conn.commit()
     finally:
         conn.close()
