@@ -20,6 +20,7 @@ USE_MOCK_SENSOR = os.getenv("USE_MOCK_SENSOR", "true").lower() == "true"
 SENSOR_CHANNEL = int(os.getenv("SENSOR_CHANNEL", 3))
 SENSOR_SAMPLE_COUNT = int(os.getenv("SENSOR_SAMPLE_COUNT", 5))
 SENSOR_SAMPLE_DELAY = float(os.getenv("SENSOR_SAMPLE_DELAY", 0.2))
+SENSOR_LOOP_INTERVAL = float(os.getenv("SENSOR_LOOP_INTERVAL", 0.1))
 
 # State thresholds
 SAFE_MAX_VALUE = int(os.getenv("SAFE_MAX_VALUE", 1200))
