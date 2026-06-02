@@ -4,12 +4,18 @@ from db import get_connection
 
 
 def serialize_short(row):
+    unlocked_at = row.get("unlocked_at")
+    if isinstance(unlocked_at, datetime):
+        unlocked_at = unlocked_at.strftime("%Y-%m-%d %H:%M:%S")
+    elif unlocked_at:
+        unlocked_at = str(unlocked_at)[:19]
+
     return {
         "episode_no": row["episode_no"],
         "title": row["title"],
         "video_path": row["video_path"],
         "is_unlocked": bool(row["is_unlocked"]),
-        "unlocked_at": row["unlocked_at"].strftime("%Y-%m-%d %H:%M:%S") if row.get("unlocked_at") else None,
+        "unlocked_at": unlocked_at,
     }
 
 
