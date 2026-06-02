@@ -25,14 +25,10 @@ from state import classify_sensor_value, state_to_dict
 app = Flask(__name__)
 CORS(app)
 
-# 새로 추가: 가장 최근 spike 결과를 담는 전역변수
 latest_result = None
-
-# 새로 추가: baseline 추적 전역변수
 _baseline = None
-
-# 새로 추가: baseline 대비 이 값 이상 오르면 숨 분 것으로 판단
 SPIKE_THRESHOLD = 20
+_spi_lock = threading.Lock()
 
 
 # 새로 추가: 백그라운드 센서 루프 (상시 측정 + spike 감지)
@@ -47,7 +43,8 @@ def sensor_loop():
 
     try:
         while True:
-            value = adc.read_channel(config.SENSOR_CHANNEL)
+            with _spi_lock:
+                value = adc.read_channel(config.SENSOR_CHANNEL)
 
             if _baseline is None:
                 _baseline = value
@@ -103,7 +100,8 @@ def error_response(message, status_code=500):
 
 def measure_once():
     led.show_measure_progress()
-    reading = read_sensor()
+    with _spi_lock:
+        reading = read_sensor()
     state = classify_sensor_value(reading.value)
     led.show_result(state.level)
     return reading, state
