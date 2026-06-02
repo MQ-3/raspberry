@@ -236,93 +236,53 @@ def shorts_unlock():
         return error_response(str(exc), 500)
 
 
-# 새로 추가: 회원가입
 @app.route("/api/auth/register", methods=["POST"])
-def register():
+def auth_register():
     try:
-        from db import get_connection
+        from auth import register_user
 
         data = request.get_json(silent=True) or {}
-        email = data.get("email")
-        password = data.get("password")
-
-        if not email or not password:
+        if not data.get("email") or not data.get("password"):
             return error_response("email과 password를 입력해주세요", 400)
 
-        conn = get_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("SELECT id FROM users WHERE email = %s", (email,))
-                if cursor.fetchone():
-                    return error_response("이미 사용 중인 이메일입니다", 409)
-
-                cursor.execute(
-                    "INSERT INTO users (email, password) VALUES (%s, %s)",
-                    (email, password),
-                )
-                user_id = cursor.lastrowid
-            conn.commit()
-        finally:
-            conn.close()
-
-        return success_response({"user_id": user_id, "email": email}, 201)
+        user = register_user(data["email"], data["password"])
+        return success_response({"user": user}, 201)
+    except ValueError as exc:
+        return error_response(str(exc), 409)
     except Exception as exc:
         return error_response(str(exc), 500)
 
 
-# 새로 추가: 로그인
 @app.route("/api/auth/login", methods=["POST"])
-def login():
+def auth_login():
     try:
-        from db import get_connection
+        from auth import login_user
 
         data = request.get_json(silent=True) or {}
-        email = data.get("email")
-        password = data.get("password")
-
-        if not email or not password:
+        if not data.get("email") or not data.get("password"):
             return error_response("email과 password를 입력해주세요", 400)
 
-        conn = get_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute(
-                    "SELECT id, email FROM users WHERE email = %s AND password = %s",
-                    (email, password),
-                )
-                user = cursor.fetchone()
-        finally:
-            conn.close()
-
-        if not user:
-            return error_response("이메일 또는 비밀번호가 올바르지 않습니다", 401)
-
-        return success_response({"user_id": user["id"], "email": user["email"]})
+        user = login_user(data["email"], data["password"])
+        return success_response({"user": user})
+    except ValueError as exc:
+        return error_response(str(exc), 401)
     except Exception as exc:
         return error_response(str(exc), 500)
 
 
-# 새로 추가: 회원탈퇴
 @app.route("/api/auth/delete", methods=["DELETE"])
-def delete_account():
+def auth_delete():
     try:
-        from db import get_connection
+        from auth import delete_user
 
         data = request.get_json(silent=True) or {}
-        user_id = data.get("user_id")
-
-        if not user_id:
+        if not data.get("user_id"):
             return error_response("user_id를 입력해주세요", 400)
 
-        conn = get_connection()
-        try:
-            with conn.cursor() as cursor:
-                cursor.execute("DELETE FROM users WHERE id = %s", (user_id,))
-            conn.commit()
-        finally:
-            conn.close()
-
+        delete_user(data["user_id"])
         return success_response({"message": "계정이 삭제되었습니다"})
+    except ValueError as exc:
+        return error_response(str(exc), 404)
     except Exception as exc:
         return error_response(str(exc), 500)
 
