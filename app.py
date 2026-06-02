@@ -51,19 +51,19 @@ def sensor_loop():
 
             if _baseline is None:
                 _baseline = value
-                # time.sleep(?)  # 대기시간 백엔드 담당자와 논의 필요
+                time.sleep(config.SENSOR_LOOP_INTERVAL)
                 continue
 
             if value - _baseline >= SPIKE_THRESHOLD:
                 # spike 감지 — 값이 내려올 때까지 peak 추적
                 peak = value
                 while True:
+                    time.sleep(config.SENSOR_LOOP_INTERVAL)
                     value = adc.read_channel(config.SENSOR_CHANNEL)
                     if value > peak:
                         peak = value
                     elif value < _baseline + SPIKE_THRESHOLD:
                         break
-                    # time.sleep(?)  # 대기시간 백엔드 담당자와 논의 필요
 
                 # peak 확정 — 상태 판별 및 저장
                 state = classify_sensor_value(peak)
@@ -84,7 +84,7 @@ def sensor_loop():
                 # spike 아닐 때 baseline 서서히 갱신
                 _baseline = _baseline * 0.9 + value * 0.1
 
-            # time.sleep(?)  # 대기시간 백엔드 담당자와 논의 필요
+            time.sleep(config.SENSOR_LOOP_INTERVAL)
 
     finally:
         adc.close()

@@ -44,12 +44,13 @@ def save_drink_log(data):
             cursor.execute(
                 """
                 INSERT INTO drink_logs (
-                    measured_at, sensor_value, state_level, state_label,
+                    user_id, measured_at, sensor_value, state_level, state_label,
                     state_message, drink_type, drink_amount, drink_unit, memo
                 )
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
                 (
+                    data.get("user_id"),
                     measured_at,
                     data["sensor_value"],
                     data["state_level"],
