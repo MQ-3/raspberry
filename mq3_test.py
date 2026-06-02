@@ -44,7 +44,7 @@ def classify(value: float, baseline: float) -> str:
     elif ratio < 2.0:
         return "주의 단계"
     else:
-        return "과음 주의 단계"
+        return "과음 단계"
 
 
 try:
