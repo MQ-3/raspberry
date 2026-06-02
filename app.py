@@ -62,8 +62,8 @@ def sensor_loop():
                     elif value < _baseline + SPIKE_THRESHOLD:
                         break
 
-                # peak 확정 — 상태 판별 및 저장 (_baseline 대비 비율로 판정)
-                state = classify_sensor_value(peak, baseline=_baseline)
+                # peak 확정 — 상태 판별 및 저장 (절대값 기준)
+                state = classify_sensor_value(peak)
                 now = datetime.now()
 
                 latest_result = {
@@ -102,11 +102,9 @@ def measure_once():
     led.show_measure_progress()
     with _spi_lock:
         reading = read_sensor()
-    state = classify_sensor_value(reading.value, baseline=reading.baseline)
-    ratio = reading.value / reading.baseline if reading.baseline else 0
+    state = classify_sensor_value(reading.value)
     print(
-        f"[measure] baseline={reading.baseline} peak={reading.value} "
-        f"ratio={ratio:.2f} -> {state.level}",
+        f"[measure] baseline={reading.baseline} peak={reading.value} -> {state.level}",
         flush=True,
     )
     led.show_result(state.level)
@@ -343,8 +341,12 @@ if __name__ == "__main__":
     # 시작 시 LED 사용 가능 여부 표시 (False 면 모든 LED 호출이 무시됨)
     print(f"[app] LED GPIO 사용가능: {led._GPIO_AVAILABLE}", flush=True)
 
-    # 새로 추가: 백그라운드 센서 루프 스레드 시작
-    sensor_thread = threading.Thread(target=sensor_loop, daemon=True)
-    sensor_thread.start()
+    # 백그라운드 센서 루프는 SPI를 측정과 동시에 점유해 값을 깨뜨리므로
+    # 기본적으로 끔. /api/status 자동감지가 필요하면 ENABLE_SENSOR_LOOP=true.
+    if config.ENABLE_SENSOR_LOOP:
+        sensor_thread = threading.Thread(target=sensor_loop, daemon=True)
+        sensor_thread.start()
+    else:
+        print("[app] sensor_loop 비활성화 (SPI 충돌 방지)", flush=True)
 
     app.run(host=config.FLASK_HOST, port=config.FLASK_PORT, debug=config.FLASK_DEBUG)

@@ -25,20 +25,13 @@ STATE_COLOR = {
 
 def classify_sensor_value(
     value,
-    baseline=None,
     safe_max_value=config.SAFE_MAX_VALUE,
     danger_min_value=config.DANGER_MIN_VALUE,
-    caution_ratio=config.CAUTION_RATIO,
-    danger_ratio=config.DANGER_RATIO,
 ):
-    # baseline 이 주어지면 비율 기준(mq3_test.py 와 동일), 없으면 절대값 fallback
-    if baseline and baseline > 0:
-        ratio = value / baseline
-        danger = ratio >= danger_ratio
-        caution = ratio >= caution_ratio
-    else:
-        danger = value >= danger_min_value
-        caution = value >= safe_max_value
+    # 절대값(peak) 기준 판정. MQ3는 포화 후 천천히 회복돼 baseline 이 오염되므로
+    # baseline 대비 비율 방식은 부정확함 -> 절대 임계값 사용.
+    danger = value >= danger_min_value
+    caution = value >= safe_max_value
 
     if danger:
         return AlcoholState(
