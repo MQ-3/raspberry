@@ -32,7 +32,7 @@ MCP3208 ADC (아날로그 → 디지털, SPI 통신)
 Raspberry Pi 4
     ├─ sensor.py   — 센서값 읽기
     ├─ state.py    — 음주 상태 판별 (safe / caution / danger)
-    ├─ db.py       — MySQL 기록 저장
+    ├─ db.py       — SQLite 기록 저장
     ├─ app.py      — Flask 웹 서버 / API
     ├─ led.py      — RGB LED 제어
     ├─ shorts.py   — AI 숏츠 잠금해제 로직

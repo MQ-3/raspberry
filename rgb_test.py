@@ -1,7 +1,7 @@
 import time
 from gpiozero import RGBLED
 
-BRIGHTNESS = 0.3  # 밝기 0.0~1.0
+BRIGHTNESS = 0.2  # 밝기 0.0~1.0
 
 led = RGBLED(red=4, green=3, blue=2, active_high=True)
 
