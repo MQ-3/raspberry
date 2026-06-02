@@ -342,6 +342,14 @@ if __name__ == "__main__":
     # 시작 시 LED 사용 가능 여부 표시 (False 면 모든 LED 호출이 무시됨)
     print(f"[app] LED GPIO 사용가능: {led._GPIO_AVAILABLE}", flush=True)
 
+    # 시작 자가확인: 앱 프로세스가 LED 를 구동할 수 있는지 초록->빨강->끔 으로 확인
+    print("[app] LED 자가확인: 초록 -> 빨강 -> 끔", flush=True)
+    led.show_result("safe")
+    time.sleep(0.8)
+    led.show_result("danger")
+    time.sleep(0.8)
+    led.clear_led()
+
     # 백그라운드 센서 루프는 SPI를 측정과 동시에 점유해 값을 깨뜨리므로
     # 기본적으로 끔. /api/status 자동감지가 필요하면 ENABLE_SENSOR_LOOP=true.
     if config.ENABLE_SENSOR_LOOP:
