@@ -39,10 +39,10 @@ def read_average(channel: int, sample_count: int = SAMPLE_COUNT) -> float:
 
 
 def classify(value: float) -> str:
-    # 값이 낮을수록 알코올 농도 높음 (AO 전압 반비례)
-    if value > 3500:
+    # 값이 높을수록 알코올 농도 높음
+    if value < 1000:
         return "안정 단계"
-    elif value > 2000:
+    elif value < 2500:
         return "주의 단계"
     else:
         return "과음 주의 단계"
