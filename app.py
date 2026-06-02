@@ -166,5 +166,56 @@ def shorts_unlock():
         return error_response(str(exc), 500)
 
 
+@app.route("/api/auth/register", methods=["POST"])
+def auth_register():
+    try:
+        from auth import register_user
+
+        data = request.get_json(silent=True) or {}
+        if not data.get("email") or not data.get("password"):
+            return error_response("email and password are required", 400)
+
+        user = register_user(data["email"], data["password"])
+        return success_response({"user": user}, 201)
+    except ValueError as exc:
+        return error_response(str(exc), 400)
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
+@app.route("/api/auth/login", methods=["POST"])
+def auth_login():
+    try:
+        from auth import login_user
+
+        data = request.get_json(silent=True) or {}
+        if not data.get("email") or not data.get("password"):
+            return error_response("email and password are required", 400)
+
+        user = login_user(data["email"], data["password"])
+        return success_response({"user": user})
+    except ValueError as exc:
+        return error_response(str(exc), 400)
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
+@app.route("/api/auth/delete", methods=["DELETE"])
+def auth_delete():
+    try:
+        from auth import delete_user
+
+        data = request.get_json(silent=True) or {}
+        if not data.get("user_id"):
+            return error_response("user_id is required", 400)
+
+        delete_user(data["user_id"])
+        return success_response({"message": "account deleted"})
+    except ValueError as exc:
+        return error_response(str(exc), 400)
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
 if __name__ == "__main__":
     app.run(host=config.FLASK_HOST, port=config.FLASK_PORT, debug=config.FLASK_DEBUG)
