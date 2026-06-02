@@ -270,6 +270,26 @@ def auth_login():
         return error_response(str(exc), 500)
 
 
+@app.route("/api/auth/profile", methods=["PUT"])
+def auth_profile():
+    try:
+        from auth import update_profile
+
+        data = request.get_json(silent=True) or {}
+        if not data.get("user_id"):
+            return error_response("user_id를 입력해주세요", 400)
+
+        update_profile(
+            data["user_id"],
+            data.get("weight"),
+            data.get("gender"),
+            data.get("alcohol_tolerance"),
+        )
+        return success_response({"message": "프로필이 업데이트되었습니다"})
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
 @app.route("/api/auth/delete", methods=["DELETE"])
 def auth_delete():
     try:

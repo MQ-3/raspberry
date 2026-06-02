@@ -59,6 +59,13 @@ def get_connection():
     return _Connection(conn)
 
 
+def _add_column_if_missing(cursor, table, col, definition):
+    try:
+        cursor.execute(f"ALTER TABLE {table} ADD COLUMN {col} {definition}")
+    except Exception:
+        pass
+
+
 def init_tables():
     conn = get_connection()
     try:
@@ -69,10 +76,16 @@ def init_tables():
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     email TEXT NOT NULL UNIQUE,
                     password_hash TEXT NOT NULL,
-                    created_at TEXT NOT NULL
+                    created_at TEXT NOT NULL,
+                    weight REAL,
+                    gender TEXT,
+                    alcohol_tolerance TEXT
                 )
                 """
             )
+            _add_column_if_missing(cursor, 'users', 'weight', 'REAL')
+            _add_column_if_missing(cursor, 'users', 'gender', 'TEXT')
+            _add_column_if_missing(cursor, 'users', 'alcohol_tolerance', 'TEXT')
             cursor.execute(
                 """
                 CREATE TABLE IF NOT EXISTS drink_logs (

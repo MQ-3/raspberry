@@ -43,6 +43,19 @@ def login_user(email, password):
         conn.close()
 
 
+def update_profile(user_id, weight, gender, alcohol_tolerance):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "UPDATE users SET weight = %s, gender = %s, alcohol_tolerance = %s WHERE id = %s",
+                (weight, gender, alcohol_tolerance, user_id),
+            )
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def delete_user(user_id):
     conn = get_connection()
     try:
