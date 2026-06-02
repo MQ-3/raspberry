@@ -1,14 +1,19 @@
+import os
 import time
+
+# 공통 음극(common-cathode) LED  -> active_high=True
+# 공통 양극(common-anode)  LED  -> active_high=False
+# LED 색이 반전되거나 안 바뀌면 .env 에서 LED_ACTIVE_HIGH 값을 바꿔보세요.
+LED_ACTIVE_HIGH = os.getenv("LED_ACTIVE_HIGH", "true").lower() == "true"
+BRIGHTNESS = float(os.getenv("LED_BRIGHTNESS", 0.3))  # 밝기 0.0~1.0
 
 try:
     from gpiozero import RGBLED
-    _led = RGBLED(red=4, green=3, blue=2, active_high=True)
+    _led = RGBLED(red=4, green=3, blue=2, active_high=LED_ACTIVE_HIGH)
     _GPIO_AVAILABLE = True
 except Exception:
     _led = None
     _GPIO_AVAILABLE = False
-
-BRIGHTNESS = 0.3  # 밝기 0.0~1.0
 
 _COLORS = {
     "safe":    (0,   1,   0),    # 초록
@@ -44,3 +49,25 @@ def clear_led():
     if not _GPIO_AVAILABLE:
         return
     _led.off()
+
+
+if __name__ == "__main__":
+    # 단독 실행 진단: 순수 빨강 -> 초록 -> 파랑 순서로 표시.
+    # 라벨과 실제 색이 다르면(예: "빨강"인데 청록색) 공통 양극 LED 이므로
+    #   .env 에 LED_ACTIVE_HIGH=false 를 추가하세요.
+    print(f"GPIO 사용가능: {_GPIO_AVAILABLE} | active_high={LED_ACTIVE_HIGH}")
+    try:
+        for name, rgb in (("빨강", (1, 0, 0)), ("초록", (0, 1, 0)), ("파랑", (0, 0, 1))):
+            print(f"  {name} 표시 중...")
+            _set_color(*rgb)
+            time.sleep(2)
+        print("측정 결과 색상: safe -> caution -> danger")
+        for level in ("safe", "caution", "danger"):
+            print(f"  {level}")
+            show_result(level)
+            time.sleep(2)
+    finally:
+        clear_led()
+        if _GPIO_AVAILABLE:
+            _led.close()
+        print("종료")
