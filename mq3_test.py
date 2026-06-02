@@ -6,7 +6,7 @@ SPI_BUS = 0
 SPI_DEVICE = 0
 SPI_SPEED_HZ = 1_000_000
 
-MQ3_CHANNEL = 3   # MQ-3 AO를 MCP3208 CH0에 연결한 경우
+MQ3_CHANNEL = 2   # MQ-3 AO를 MCP3208 CH2에 연결한 경우
 SAMPLE_COUNT = 10
 SAMPLE_DELAY = 0.05
 
@@ -39,13 +39,10 @@ def read_average(channel: int, sample_count: int = SAMPLE_COUNT) -> float:
 
 
 def classify(value: float) -> str:
-    """
-    임시 상태 구분.
-    실제 MQ-3 연결 후 측정값 보고 기준 수정 필요.
-    """
-    if value < 500:
+    # 값이 낮을수록 알코올 농도 높음 (AO 전압 반비례)
+    if value > 3500:
         return "안정 단계"
-    elif value < 1500:
+    elif value > 2000:
         return "주의 단계"
     else:
         return "과음 주의 단계"
