@@ -19,10 +19,12 @@ pwm_b.start(0)
 
 
 def set_color(r, g, b):
-    pwm_r.ChangeDutyCycle(r / 255 * 100)
-    pwm_g.ChangeDutyCycle(g / 255 * 100)
-    pwm_b.ChangeDutyCycle(b / 255 * 100)
+    pwm_r.ChangeDutyCycle(r / 255 * BRIGHTNESS)
+    pwm_g.ChangeDutyCycle(g / 255 * BRIGHTNESS)
+    pwm_b.ChangeDutyCycle(b / 255 * BRIGHTNESS)
 
+
+BRIGHTNESS = 30  # 밝기 0~100
 
 try:
     print("빨강")
@@ -48,8 +50,10 @@ except KeyboardInterrupt:
     pass
 
 finally:
+    set_color(0, 0, 0)
     pwm_r.stop()
     pwm_g.stop()
     pwm_b.stop()
+    GPIO.output([PIN_R, PIN_G, PIN_B], GPIO.LOW)
     GPIO.cleanup()
     print("종료")
