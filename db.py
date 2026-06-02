@@ -24,6 +24,16 @@ def init_tables():
         with conn.cursor() as cursor:
             cursor.execute(
                 """
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    created_at DATETIME NOT NULL
+                )
+                """
+            )
+            cursor.execute(
+                """
                 CREATE TABLE IF NOT EXISTS drink_logs (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     measured_at DATETIME NOT NULL,
