@@ -115,26 +115,37 @@ def save_drink_log(data):
         conn.close()
 
 
-def get_today_logs():
+def get_today_logs(user_id=None):
     today = date.today()
     start = datetime.combine(today, time.min)
     end = start + timedelta(days=1)
-    return get_logs_between(start, end)
+    return get_logs_between(start, end, user_id=user_id)
 
 
-def get_logs_between(start, end):
+def get_logs_between(start, end, user_id=None):
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            cursor.execute(
-                """
-                SELECT *
-                FROM drink_logs
-                WHERE measured_at >= %s AND measured_at < %s
-                ORDER BY measured_at ASC
-                """,
-                (start, end),
-            )
+            if user_id:
+                cursor.execute(
+                    """
+                    SELECT *
+                    FROM drink_logs
+                    WHERE measured_at >= %s AND measured_at < %s AND user_id = %s
+                    ORDER BY measured_at ASC
+                    """,
+                    (start, end, user_id),
+                )
+            else:
+                cursor.execute(
+                    """
+                    SELECT *
+                    FROM drink_logs
+                    WHERE measured_at >= %s AND measured_at < %s
+                    ORDER BY measured_at ASC
+                    """,
+                    (start, end),
+                )
             rows = cursor.fetchall()
         return [serialize_log(row) for row in rows]
     finally:

@@ -172,7 +172,7 @@ def logs_today():
 
         user_id = request.args.get("user_id", type=int)
         exceeded = calc_today_exceeded(user_id)
-        return success_response({"logs": get_today_logs(), "exceeded_tolerance": exceeded})
+        return success_response({"logs": get_today_logs(user_id=user_id), "exceeded_tolerance": exceeded})
     except Exception as exc:
         return error_response(str(exc), 500)
 
