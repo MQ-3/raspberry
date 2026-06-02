@@ -62,8 +62,8 @@ def sensor_loop():
                     elif value < _baseline + SPIKE_THRESHOLD:
                         break
 
-                # peak 확정 — 상태 판별 및 저장
-                state = classify_sensor_value(peak)
+                # peak 확정 — 상태 판별 및 저장 (_baseline 대비 비율로 판정)
+                state = classify_sensor_value(peak, baseline=_baseline)
                 now = datetime.now()
 
                 latest_result = {
@@ -102,7 +102,13 @@ def measure_once():
     led.show_measure_progress()
     with _spi_lock:
         reading = read_sensor()
-    state = classify_sensor_value(reading.value)
+    state = classify_sensor_value(reading.value, baseline=reading.baseline)
+    ratio = reading.value / reading.baseline if reading.baseline else 0
+    print(
+        f"[measure] baseline={reading.baseline} peak={reading.value} "
+        f"ratio={ratio:.2f} -> {state.level}",
+        flush=True,
+    )
     led.show_result(state.level)
     return reading, state
 
@@ -334,6 +340,9 @@ def status():
 
 
 if __name__ == "__main__":
+    # 시작 시 LED 사용 가능 여부 표시 (False 면 모든 LED 호출이 무시됨)
+    print(f"[app] LED GPIO 사용가능: {led._GPIO_AVAILABLE}", flush=True)
+
     # 새로 추가: 백그라운드 센서 루프 스레드 시작
     sensor_thread = threading.Thread(target=sensor_loop, daemon=True)
     sensor_thread.start()

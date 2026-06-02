@@ -11,7 +11,9 @@ try:
     from gpiozero import RGBLED
     _led = RGBLED(red=4, green=3, blue=2, active_high=LED_ACTIVE_HIGH)
     _GPIO_AVAILABLE = True
-except Exception:
+except Exception as exc:
+    # 에러를 삼키지 않고 출력 — LED 초기화 실패 시 원인이 보이게.
+    print(f"[led] GPIO 초기화 실패, LED 비활성화: {exc!r}", flush=True)
     _led = None
     _GPIO_AVAILABLE = False
 

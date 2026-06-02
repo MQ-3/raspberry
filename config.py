@@ -24,6 +24,10 @@ BASELINE_DURATION = int(os.getenv("BASELINE_DURATION", 3))
 BLOW_DURATION = int(os.getenv("BLOW_DURATION", 4))
 STABILIZE_DURATION = int(os.getenv("STABILIZE_DURATION", 3))
 
-# State thresholds
+# State thresholds (절대값 기준 - baseline 없을 때 fallback)
 SAFE_MAX_VALUE = int(os.getenv("SAFE_MAX_VALUE", 1200))
 DANGER_MIN_VALUE = int(os.getenv("DANGER_MIN_VALUE", 2400))
+
+# State thresholds (baseline 대비 비율 기준 - mq3_test.py 와 동일)
+CAUTION_RATIO = float(os.getenv("CAUTION_RATIO", 1.3))
+DANGER_RATIO = float(os.getenv("DANGER_RATIO", 2.0))
