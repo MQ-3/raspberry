@@ -290,6 +290,23 @@ def auth_profile():
         return error_response(str(exc), 500)
 
 
+@app.route("/api/auth/profile", methods=["GET"])
+def auth_profile_get():
+    try:
+        from auth import get_profile
+
+        user_id = request.args.get("user_id", type=int)
+        if not user_id:
+            return error_response("user_id를 입력해주세요", 400)
+
+        user = get_profile(user_id)
+        return success_response({"user": user})
+    except ValueError as exc:
+        return error_response(str(exc), 404)
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
 @app.route("/api/auth/delete", methods=["DELETE"])
 def auth_delete():
     try:

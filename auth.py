@@ -56,6 +56,28 @@ def update_profile(user_id, weight, gender, alcohol_tolerance):
         conn.close()
 
 
+def get_profile(user_id):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                "SELECT id, email, weight, gender, alcohol_tolerance FROM users WHERE id = %s",
+                (user_id,),
+            )
+            user = cursor.fetchone()
+        if not user:
+            raise ValueError("존재하지 않는 사용자입니다.")
+        return {
+            "id": user["id"],
+            "email": user["email"],
+            "weight": user["weight"],
+            "gender": user["gender"],
+            "alcohol_tolerance": user["alcohol_tolerance"],
+        }
+    finally:
+        conn.close()
+
+
 def delete_user(user_id):
     conn = get_connection()
     try:
