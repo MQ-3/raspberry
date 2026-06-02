@@ -25,13 +25,25 @@ STATE_COLOR = {
 
 def classify_sensor_value(
     value,
+    baseline=None,
+    caution_delta=config.CAUTION_DELTA,
+    danger_delta=config.DANGER_DELTA,
+    saturation_value=config.SATURATION_VALUE,
     safe_max_value=config.SAFE_MAX_VALUE,
     danger_min_value=config.DANGER_MIN_VALUE,
 ):
-    # 절대값(peak) 기준 판정. MQ3는 포화 후 천천히 회복돼 baseline 이 오염되므로
-    # baseline 대비 비율 방식은 부정확함 -> 절대 임계값 사용.
-    danger = value >= danger_min_value
-    caution = value >= safe_max_value
+    # peak 가 포화 수준이면(이미 만취) delta 와 무관하게 danger.
+    if value >= saturation_value:
+        danger, caution = True, False
+    elif baseline is not None:
+        # 불기로 인한 상승폭(delta)으로 판정 — baseline 드리프트에 강함.
+        delta = value - baseline
+        danger = delta >= danger_delta
+        caution = delta >= caution_delta
+    else:
+        # baseline 을 모르면 절대값 fallback.
+        danger = value >= danger_min_value
+        caution = value >= safe_max_value
 
     if danger:
         return AlcoholState(

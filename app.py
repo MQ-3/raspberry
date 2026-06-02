@@ -62,8 +62,8 @@ def sensor_loop():
                     elif value < _baseline + SPIKE_THRESHOLD:
                         break
 
-                # peak 확정 — 상태 판별 및 저장 (절대값 기준)
-                state = classify_sensor_value(peak)
+                # peak 확정 — 상태 판별 및 저장 (delta = peak - _baseline 기준)
+                state = classify_sensor_value(peak, baseline=_baseline)
                 now = datetime.now()
 
                 latest_result = {
@@ -102,9 +102,10 @@ def measure_once():
     led.show_measure_progress()
     with _spi_lock:
         reading = read_sensor()
-    state = classify_sensor_value(reading.value)
+    state = classify_sensor_value(reading.value, baseline=reading.baseline)
     print(
-        f"[measure] baseline={reading.baseline} peak={reading.value} -> {state.level}",
+        f"[measure] baseline={reading.baseline} peak={reading.value} "
+        f"delta={reading.value - reading.baseline:.0f} -> {state.level}",
         flush=True,
     )
     led.show_result(state.level)

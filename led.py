@@ -7,9 +7,18 @@ import time
 LED_ACTIVE_HIGH = os.getenv("LED_ACTIVE_HIGH", "true").lower() == "true"
 BRIGHTNESS = float(os.getenv("LED_BRIGHTNESS", 0.3))  # 밝기 0.0~1.0
 
+# LED 핀(BCM). 기본 green=3/blue=2 는 I2C 핀이라 풀업 때문에 색이 안 꺼질 수 있음.
+# 그럴 땐 풀업 없는 핀(예: 17/27/22)으로 배선하고 아래 env 만 바꾸면 됨.
+LED_PIN_RED = int(os.getenv("LED_PIN_RED", 4))
+LED_PIN_GREEN = int(os.getenv("LED_PIN_GREEN", 3))
+LED_PIN_BLUE = int(os.getenv("LED_PIN_BLUE", 2))
+
 try:
     from gpiozero import RGBLED
-    _led = RGBLED(red=4, green=3, blue=2, active_high=LED_ACTIVE_HIGH)
+    _led = RGBLED(
+        red=LED_PIN_RED, green=LED_PIN_GREEN, blue=LED_PIN_BLUE,
+        active_high=LED_ACTIVE_HIGH,
+    )
     _GPIO_AVAILABLE = True
 except Exception as exc:
     # 에러를 삼키지 않고 출력 — LED 초기화 실패 시 원인이 보이게.
@@ -57,7 +66,11 @@ if __name__ == "__main__":
     # 단독 실행 진단: 순수 빨강 -> 초록 -> 파랑 순서로 표시.
     # 라벨과 실제 색이 다르면(예: "빨강"인데 청록색) 공통 양극 LED 이므로
     #   .env 에 LED_ACTIVE_HIGH=false 를 추가하세요.
-    print(f"GPIO 사용가능: {_GPIO_AVAILABLE} | active_high={LED_ACTIVE_HIGH}")
+    print(f"GPIO 사용가능: {_GPIO_AVAILABLE} | active_high={LED_ACTIVE_HIGH} | "
+          f"pins R={LED_PIN_RED} G={LED_PIN_GREEN} B={LED_PIN_BLUE}")
+    print("  먼저 전체 OFF (검정이어야 정상, 흰색이면 극성/풀업 문제)")
+    clear_led()
+    time.sleep(2)
     try:
         for name, rgb in (("빨강", (1, 0, 0)), ("초록", (0, 1, 0)), ("파랑", (0, 0, 1))):
             print(f"  {name} 표시 중...")

@@ -27,9 +27,12 @@ BASELINE_DURATION = int(os.getenv("BASELINE_DURATION", 3))
 BLOW_DURATION = int(os.getenv("BLOW_DURATION", 4))
 STABILIZE_DURATION = int(os.getenv("STABILIZE_DURATION", 3))
 
-# State thresholds (절대 peak 값 기준)
-#   safe:    peak < SAFE_MAX_VALUE
-#   caution: SAFE_MAX_VALUE <= peak < DANGER_MIN_VALUE
-#   danger:  peak >= DANGER_MIN_VALUE
+# State thresholds
+# 1) 상승폭(delta = peak - baseline) 기준 — MQ3 baseline 드리프트에 강함
+CAUTION_DELTA = int(os.getenv("CAUTION_DELTA", 400))   # delta >= 이 값이면 caution
+DANGER_DELTA = int(os.getenv("DANGER_DELTA", 1500))    # delta >= 이 값이면 danger
+# 2) 포화 override — 불기 전부터 센서가 이미 높으면(만취) delta 와 무관하게 danger
+SATURATION_VALUE = int(os.getenv("SATURATION_VALUE", 3000))
+# 3) baseline 을 모를 때(자동감지 등) 쓰는 절대값 fallback
 SAFE_MAX_VALUE = int(os.getenv("SAFE_MAX_VALUE", 1200))
 DANGER_MIN_VALUE = int(os.getenv("DANGER_MIN_VALUE", 2400))
