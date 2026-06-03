@@ -35,10 +35,10 @@ def serialize_log(row):
     }
 
 
-def calc_today_exceeded(user_id):
-    """오늘 음주 기록을 소주 병수로 환산해 주량 초과 여부를 반환한다."""
+def _get_tolerance_and_bottles(user_id):
+    """(tolerance, total_bottles) 반환. user_id 없거나 tolerance 미설정이면 (None, 0.0)."""
     if not user_id:
-        return False
+        return None, 0.0
 
     conn = get_connection()
     try:
@@ -48,7 +48,7 @@ def calc_today_exceeded(user_id):
             )
             row = cursor.fetchone()
         if not row or row["alcohol_tolerance"] is None:
-            return False
+            return None, 0.0
         tolerance = row["alcohol_tolerance"]
 
         today = date.today()
@@ -78,7 +78,23 @@ def calc_today_exceeded(user_id):
         elif r["drink_type"] == "맥주" and r["drink_unit"] == "캔":
             total_bottles += amount / 2.4
 
+    return tolerance, total_bottles
+
+
+def calc_today_exceeded(user_id):
+    """오늘 음주 기록을 소주 병수로 환산해 주량 초과 여부를 반환한다."""
+    tolerance, total_bottles = _get_tolerance_and_bottles(user_id)
+    if tolerance is None:
+        return False
     return total_bottles > tolerance
+
+
+def calc_heavy_drinking(user_id):
+    """주량 + 반병(0.5) 초과 시 과음으로 판단한다."""
+    tolerance, total_bottles = _get_tolerance_and_bottles(user_id)
+    if tolerance is None:
+        return False
+    return total_bottles > tolerance + 0.5
 
 
 def save_drink_log(data):

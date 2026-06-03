@@ -149,7 +149,7 @@ def measure():
 @app.route("/api/logs", methods=["POST"])
 def create_log():
     try:
-        from reports import calc_today_exceeded, save_drink_log
+        from reports import calc_heavy_drinking, calc_today_exceeded, save_drink_log
 
         data = request.get_json(silent=True) or {}
         required = ["sensor_value", "state_level", "state_label"]
@@ -160,7 +160,8 @@ def create_log():
         log_id = save_drink_log(data)
         user_id = data.get("user_id")
         exceeded = calc_today_exceeded(user_id)
-        return success_response({"message": "log saved", "id": log_id, "exceeded_tolerance": exceeded}, 201)
+        heavy = calc_heavy_drinking(user_id)
+        return success_response({"message": "log saved", "id": log_id, "exceeded_tolerance": exceeded, "heavy_drinking": heavy}, 201)
     except Exception as exc:
         return error_response(str(exc), 500)
 
@@ -168,11 +169,12 @@ def create_log():
 @app.route("/api/logs/today", methods=["GET"])
 def logs_today():
     try:
-        from reports import calc_today_exceeded, get_today_logs
+        from reports import calc_heavy_drinking, calc_today_exceeded, get_today_logs
 
         user_id = request.args.get("user_id", type=int)
         exceeded = calc_today_exceeded(user_id)
-        return success_response({"logs": get_today_logs(user_id=user_id), "exceeded_tolerance": exceeded})
+        heavy = calc_heavy_drinking(user_id)
+        return success_response({"logs": get_today_logs(user_id=user_id), "exceeded_tolerance": exceeded, "heavy_drinking": heavy})
     except Exception as exc:
         return error_response(str(exc), 500)
 
@@ -214,12 +216,27 @@ def shorts_list():
 @app.route("/api/shorts/unlock", methods=["POST"])
 def shorts_unlock():
     try:
-        from reports import save_drink_log
+        from reports import calc_heavy_drinking, save_drink_log
         from shorts import unlock_next_short_if_allowed
+
+        data = request.get_json(silent=True) or {}
+        user_id = data.get("user_id")
+
+        # 과음 상태(주량 + 반병 초과)이면 측정 없이 차단
+        if calc_heavy_drinking(user_id):
+            return success_response(
+                {
+                    "unlocked": False,
+                    "blocked": True,
+                    "episode": None,
+                    "message": "과음이 의심됩니다. 음주를 멈추세요.",
+                }
+            )
 
         reading, state = measure_once()
         save_drink_log(
             {
+                "user_id": user_id,
                 "sensor_value": reading.value,
                 "state_level": state.level,
                 "state_label": state.label,
@@ -234,6 +251,7 @@ def shorts_unlock():
                 "sensor_value": reading.value,
                 "state": state_to_dict(state),
                 "unlocked": unlock_result["unlocked"],
+                "blocked": False,
                 "episode": unlock_result["episode"],
                 "message": unlock_result["message"],
             }
