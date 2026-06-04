@@ -179,6 +179,27 @@ def logs_today():
         return error_response(str(exc), 500)
 
 
+@app.route("/api/logs/range", methods=["GET"])
+def logs_range():
+    try:
+        from datetime import datetime
+        from reports import get_daily_summary
+
+        start_str = request.args.get("start")
+        end_str = request.args.get("end")
+        user_id = request.args.get("user_id", type=int)
+
+        if not start_str or not end_str:
+            return error_response("start, end 파라미터가 필요합니다", 400)
+
+        start = datetime.strptime(start_str, "%Y-%m-%d").date()
+        end = datetime.strptime(end_str, "%Y-%m-%d").date()
+        days = get_daily_summary(start, end, user_id=user_id)
+        return success_response({"days": days})
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
 @app.route("/api/logs/week", methods=["GET"])
 def logs_week():
     try:
