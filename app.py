@@ -229,7 +229,10 @@ def shorts_list():
     try:
         from shorts import get_shorts
 
-        return success_response({"shorts": get_shorts()})
+        user_id = request.args.get("user_id", type=int)
+        if not user_id:
+            return error_response("user_id가 필요합니다", 400)
+        return success_response({"shorts": get_shorts(user_id)})
     except Exception as exc:
         return error_response(str(exc), 500)
 
@@ -237,13 +240,16 @@ def shorts_list():
 @app.route("/api/shorts/unlock", methods=["POST"])
 def shorts_unlock():
     try:
-        from reports import calc_heavy_drinking, save_drink_log
+        from reports import calc_heavy_drinking
         from shorts import unlock_next_short_if_allowed
 
         data = request.get_json(silent=True) or {}
         user_id = data.get("user_id")
+        state_level = data.get("state_level")
 
-        # 과음 상태(주량 + 반병 초과)이면 측정 없이 차단
+        if not user_id or not state_level:
+            return error_response("user_id와 state_level이 필요합니다", 400)
+
         if calc_heavy_drinking(user_id):
             return success_response(
                 {
@@ -254,23 +260,10 @@ def shorts_unlock():
                 }
             )
 
-        reading, state = measure_once()
-        save_drink_log(
-            {
-                "user_id": user_id,
-                "sensor_value": reading.value,
-                "state_level": state.level,
-                "state_label": state.label,
-                "state_message": state.message,
-                "memo": "AI 숏츠 체크인",
-            }
-        )
-        unlock_result = unlock_next_short_if_allowed(state.level)
+        unlock_result = unlock_next_short_if_allowed(state_level, user_id)
 
         return success_response(
             {
-                "sensor_value": reading.value,
-                "state": state_to_dict(state),
                 "unlocked": unlock_result["unlocked"],
                 "blocked": False,
                 "episode": unlock_result["episode"],
@@ -278,7 +271,6 @@ def shorts_unlock():
             }
         )
     except Exception as exc:
-        led.clear_led()
         return error_response(str(exc), 500)
 
 
@@ -289,10 +281,11 @@ def shorts_watched():
 
         data = request.get_json(silent=True) or {}
         episode_no = data.get("episode_no")
-        if not episode_no:
-            return error_response("episode_no가 필요합니다", 400)
+        user_id = data.get("user_id")
+        if not episode_no or not user_id:
+            return error_response("episode_no와 user_id가 필요합니다", 400)
 
-        mark_short_watched(episode_no)
+        mark_short_watched(episode_no, user_id)
         return success_response({"message": "시청 완료 처리되었습니다"})
     except Exception as exc:
         return error_response(str(exc), 500)

@@ -119,6 +119,20 @@ def init_tables():
             )
             _add_column_if_missing(cursor, 'shorts', 'is_watched', 'INTEGER DEFAULT 0')
             _add_column_if_missing(cursor, 'shorts', 'watched_at', 'TEXT')
+            cursor.execute(
+                """
+                CREATE TABLE IF NOT EXISTS user_shorts_progress (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    user_id INTEGER NOT NULL,
+                    episode_no INTEGER NOT NULL,
+                    is_unlocked INTEGER DEFAULT 0,
+                    unlocked_at TEXT,
+                    is_watched INTEGER DEFAULT 0,
+                    watched_at TEXT,
+                    UNIQUE(user_id, episode_no)
+                )
+                """
+            )
         conn.commit()
         seed_shorts()
     finally:
