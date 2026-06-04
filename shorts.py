@@ -10,12 +10,20 @@ def serialize_short(row):
     elif unlocked_at:
         unlocked_at = str(unlocked_at)[:19]
 
+    watched_at = row.get("watched_at")
+    if isinstance(watched_at, datetime):
+        watched_at = watched_at.strftime("%Y-%m-%d %H:%M:%S")
+    elif watched_at:
+        watched_at = str(watched_at)[:19]
+
     return {
         "episode_no": row["episode_no"],
         "title": row["title"],
         "video_path": row["video_path"],
         "is_unlocked": bool(row["is_unlocked"]),
         "unlocked_at": unlocked_at,
+        "is_watched": bool(row.get("is_watched", 0)),
+        "watched_at": watched_at,
     }
 
 
@@ -68,6 +76,24 @@ def unlock_short(episode_no):
                 (datetime.now(), episode_no),
             )
         conn.commit()
+    finally:
+        conn.close()
+
+
+def mark_short_watched(episode_no):
+    conn = get_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(
+                """
+                UPDATE shorts
+                SET is_watched = TRUE, watched_at = %s
+                WHERE episode_no = %s AND is_unlocked = TRUE
+                """,
+                (datetime.now(), episode_no),
+            )
+        conn.commit()
+        return True
     finally:
         conn.close()
 

@@ -111,10 +111,14 @@ def init_tables():
                     title TEXT NOT NULL,
                     video_path TEXT NOT NULL,
                     is_unlocked INTEGER DEFAULT 0,
-                    unlocked_at TEXT
+                    unlocked_at TEXT,
+                    is_watched INTEGER DEFAULT 0,
+                    watched_at TEXT
                 )
                 """
             )
+            _add_column_if_missing(cursor, 'shorts', 'is_watched', 'INTEGER DEFAULT 0')
+            _add_column_if_missing(cursor, 'shorts', 'watched_at', 'TEXT')
         conn.commit()
         seed_shorts()
     finally:

@@ -282,6 +282,22 @@ def shorts_unlock():
         return error_response(str(exc), 500)
 
 
+@app.route("/api/shorts/watched", methods=["POST"])
+def shorts_watched():
+    try:
+        from shorts import mark_short_watched
+
+        data = request.get_json(silent=True) or {}
+        episode_no = data.get("episode_no")
+        if not episode_no:
+            return error_response("episode_no가 필요합니다", 400)
+
+        mark_short_watched(episode_no)
+        return success_response({"message": "시청 완료 처리되었습니다"})
+    except Exception as exc:
+        return error_response(str(exc), 500)
+
+
 @app.route("/api/auth/register", methods=["POST"])
 def auth_register():
     try:
