@@ -139,29 +139,20 @@ def get_today_logs(user_id=None):
 
 
 def get_logs_between(start, end, user_id=None):
+    if not user_id:
+        return []
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            if user_id:
-                cursor.execute(
-                    """
-                    SELECT *
-                    FROM drink_logs
-                    WHERE measured_at >= %s AND measured_at < %s AND user_id = %s
-                    ORDER BY measured_at ASC
-                    """,
-                    (start, end, user_id),
-                )
-            else:
-                cursor.execute(
-                    """
-                    SELECT *
-                    FROM drink_logs
-                    WHERE measured_at >= %s AND measured_at < %s
-                    ORDER BY measured_at ASC
-                    """,
-                    (start, end),
-                )
+            cursor.execute(
+                """
+                SELECT *
+                FROM drink_logs
+                WHERE measured_at >= %s AND measured_at < %s AND user_id = %s
+                ORDER BY measured_at ASC
+                """,
+                (start, end, user_id),
+            )
             rows = cursor.fetchall()
         return [serialize_log(row) for row in rows]
     finally:
@@ -198,12 +189,12 @@ def get_month_report(year=None, month=None, user_id=None):  # 새로 추가: use
 
 
 def get_daily_summary(start_date, end_date, user_id=None):  # 새로 추가: user_id 파라미터
+    if not user_id:
+        return []
     conn = get_connection()
     try:
         with conn.cursor() as cursor:
-            # 새로 추가: user_id 있으면 해당 유저 데이터만 조회
-            if user_id:
-                cursor.execute(
+            cursor.execute(
                     """
                     SELECT
                         DATE(measured_at) AS log_date,
@@ -215,20 +206,6 @@ def get_daily_summary(start_date, end_date, user_id=None):  # 새로 추가: use
                     ORDER BY log_date ASC
                     """,
                     (start_date, end_date, user_id),
-                )
-            else:
-                cursor.execute(
-                    """
-                    SELECT
-                        DATE(measured_at) AS log_date,
-                        state_level,
-                        MAX(sensor_value) AS max_value
-                    FROM drink_logs
-                    WHERE measured_at >= %s AND measured_at < %s
-                    GROUP BY DATE(measured_at), state_level
-                    ORDER BY log_date ASC
-                    """,
-                    (start_date, end_date),
                 )
             rows = cursor.fetchall()
     finally:
