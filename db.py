@@ -123,9 +123,11 @@ def init_tables():
 
 def seed_shorts():
     rows = [
-        (1, "EP.1 비밀 계약의 시작", "/static/videos/ep1.mp4", 1, datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
-        (2, "EP.2 유전자 검사 결과", "/static/videos/ep2.mp4", 0, None),
-        (3, "EP.3 결혼식장의 배신", "/static/videos/ep3.mp4", 0, None),
+        (1, "EP.1 대표님 아이를 임신했어요.", "/static/videos/ep1.mp4", 1, datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+        (2, "EP.2 내 아이를 임신했다고?", "/static/videos/ep2.mp4", 0, None),
+        (3, "EP.3 그럼 우리 집으로 들어와요", "/static/videos/ep3.mp4", 0, None),
+        (4, "EP.4 대표님, 혹시 내일 시간 있으세요?", "/static/videos/ep4.mp4", 0, None),
+        (5, "EP.5 배지아는 불륜녀라고요!", "/static/videos/ep5.mp4", 0, None),
     ]
 
     conn = get_connection()
